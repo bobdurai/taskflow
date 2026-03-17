@@ -85,6 +85,7 @@
         .task-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:12px;cursor:pointer;transition:all .15s;box-shadow:var(--shadow);}
         .task-card:hover{border-color:var(--accent);box-shadow:var(--shadow-md);transform:translateY(-1px);}
         .task-card.dragging{opacity:.45;transform:rotate(1.5deg);}
+        .task-num{font-size:10px;font-weight:700;color:var(--accent);margin-bottom:3px;letter-spacing:.02em;}
         .task-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;line-height:1.4;}
         .task-desc-preview{font-size:12px;color:var(--muted-text);margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
         .task-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
@@ -207,6 +208,39 @@
         /* ── REASSIGN SELECT ── */
         .reassign-sel{width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--text);background:#fff;font-family:inherit;cursor:pointer;}
         .reassign-sel:focus{outline:none;border-color:var(--accent);}
+
+        /* ── AUDIT TRAIL ── */
+        .audit-entry{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+        .audit-entry:last-child{border-bottom:none;}
+        .audit-icon-box{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;background:var(--muted-bg);flex-shrink:0;}
+        .audit-body{flex:1;}
+        .audit-action-text{font-size:12px;font-weight:600;color:var(--text);}
+        .audit-detail-text{font-size:11px;color:var(--muted-text);margin-top:1px;}
+        .audit-when{font-size:10px;color:var(--muted-text);flex-shrink:0;padding-top:3px;}
+
+        /* ── GANTT ── */
+        .gantt-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow);}
+        .gantt-container{min-width:800px;padding:16px;}
+        .gantt-head{display:flex;border-bottom:2px solid var(--border);padding-bottom:8px;margin-bottom:2px;}
+        .gantt-lbl-col{width:240px;flex-shrink:0;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted-text);}
+        .gantt-tl-head{flex:1;display:flex;}
+        .gantt-week-mark{flex:1;font-size:10px;color:var(--muted-text);border-left:1px dashed var(--border);padding-left:4px;white-space:nowrap;}
+        .gantt-row{display:flex;align-items:center;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.04);}
+        .gantt-task-info{width:240px;flex-shrink:0;display:flex;align-items:center;gap:6px;padding-right:12px;}
+        .gantt-bar-area{flex:1;position:relative;height:26px;}
+        .gantt-bar{position:absolute;height:20px;border-radius:4px;top:3px;display:flex;align-items:center;padding:0 6px;font-size:10px;font-weight:600;color:#fff;overflow:hidden;white-space:nowrap;cursor:pointer;min-width:6px;transition:opacity .15s;}
+        .gantt-bar:hover{opacity:.85;}
+        .gantt-today{position:absolute;top:0;bottom:0;width:2px;background:var(--danger);opacity:.6;z-index:2;}
+
+        /* ── REPORTS ── */
+        .report-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;}
+        .report-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow);}
+        .report-title{font-size:14px;font-weight:700;margin-bottom:16px;}
+        .rbar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+        .rbar-lbl{font-size:12px;min-width:120px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .rbar-track{flex:1;height:8px;background:var(--muted-bg);border-radius:99px;overflow:hidden;}
+        .rbar-fill{height:100%;border-radius:99px;}
+        .rbar-val{font-size:12px;font-weight:600;color:var(--muted-text);min-width:32px;text-align:right;}
     </style>
 </head>
 <body>
@@ -246,7 +280,7 @@ const COLUMNS = [
 const SEED = {
     view:'dashboard', projectId:null, taskId:null, modal:null, modalData:null,
     taskView:'kanban', teamDept:'all', editMemberId:null,
-    currentUser:'m1',
+    currentUser:'m1', taskCounter:15,
     departments:['IT','Engineering','Design','Finance','Human Resources','Marketing','QA','Operations'],
     members:[
         {id:'m1',name:'Alice Johnson',  role:'Product Manager',      email:'alice@example.com',  initials:'AJ',color:'#0C2C4F',department:'IT'},
@@ -262,20 +296,20 @@ const SEED = {
         {id:'p4',name:'Data Analytics Dashboard', description:'Build a comprehensive analytics dashboard for business insights and reporting',     color:'#1B7A5F',status:'completed',dueDate:'2025-03-31',memberIds:['m3','m4','m5']},
     ],
     tasks:[
-        {id:'t1', projectId:'p1',title:'Create wireframes for homepage',   description:'Design low-fidelity wireframes for all homepage sections',                  status:'done',        priority:'high',   assigneeId:'m3',dueDate:'2025-02-15',comments:[{id:'c1',userId:'m1',text:'Great progress! The wireframes look solid.',createdAt:'2 days ago'},{id:'c2',userId:'m3',text:'Thanks! Moving to hi-fidelity next.',createdAt:'1 day ago'}]},
-        {id:'t2', projectId:'p1',title:'Design component library',         description:'Build a comprehensive UI component library in Figma',                       status:'in-progress', priority:'high',   assigneeId:'m3',dueDate:'2025-04-01',comments:[]},
-        {id:'t3', projectId:'p1',title:'Implement new navigation',         description:'Code the redesigned responsive navigation with mobile menu',                status:'in-progress', priority:'medium', assigneeId:'m2',dueDate:'2025-04-15',comments:[{id:'c3',userId:'m2',text:'Working on mobile breakpoints now.',createdAt:'3 hours ago'}]},
-        {id:'t4', projectId:'p1',title:'Hero section animations',          description:'Add smooth entrance animations to the hero section elements',               status:'todo',        priority:'low',    assigneeId:'m2',dueDate:'2025-04-25',comments:[]},
-        {id:'t5', projectId:'p1',title:'SEO optimization audit',           description:'Audit current SEO and implement improvements for the new site',             status:'todo',        priority:'medium', assigneeId:'m1',dueDate:'2025-05-01',comments:[]},
-        {id:'t6', projectId:'p1',title:'Cross-browser testing',            description:'Test the new design across all major browsers and devices',                 status:'review',      priority:'high',   assigneeId:'m5',dueDate:'2025-04-10',comments:[{id:'c4',userId:'m5',text:'Found some issues in Safari — filing bugs now.',createdAt:'1 hour ago'}]},
-        {id:'t7', projectId:'p2',title:'App architecture planning',        description:'Define the technical architecture, state management, and tech stack',       status:'done',        priority:'high',   assigneeId:'m4',dueDate:'2025-02-01',comments:[]},
-        {id:'t8', projectId:'p2',title:'User authentication flow',         description:'Implement login, registration, OAuth and password reset screens',           status:'in-progress', priority:'high',   assigneeId:'m4',dueDate:'2025-04-20',comments:[]},
-        {id:'t9', projectId:'p2',title:'Push notification system',         description:'Set up Firebase Cloud Messaging for push notifications',                    status:'todo',        priority:'medium', assigneeId:'m4',dueDate:'2025-05-10',comments:[]},
-        {id:'t10',projectId:'p2',title:'App store submission prep',        description:'Prepare screenshots, descriptions and metadata for App Store & Play Store', status:'todo',        priority:'medium', assigneeId:'m1',dueDate:'2025-07-01',comments:[]},
-        {id:'t11',projectId:'p2',title:'Beta testing round',               description:'Recruit beta testers and coordinate the first testing round',               status:'todo',        priority:'high',   assigneeId:'m5',dueDate:'2025-06-15',comments:[]},
-        {id:'t12',projectId:'p3',title:'Stripe payment integration',       description:'Integrate Stripe SDK for one-time and subscription payment processing',     status:'done',        priority:'high',   assigneeId:'m4',dueDate:'2025-03-28',comments:[]},
-        {id:'t13',projectId:'p3',title:'SendGrid email integration',       description:'Set up transactional email service using SendGrid templates',               status:'in-progress', priority:'medium', assigneeId:'m2',dueDate:'2025-04-15',comments:[]},
-        {id:'t14',projectId:'p3',title:'OAuth2 social login',              description:'Add Google and GitHub OAuth2 login options to the auth flow',               status:'review',      priority:'medium', assigneeId:'m4',dueDate:'2025-04-25',comments:[]},
+        {id:'t1', num:1, projectId:'p1',title:'Create wireframes for homepage',   description:'Design low-fidelity wireframes for all homepage sections',                  status:'done',        priority:'high',   assigneeId:'m3',startDate:'2025-02-01',dueDate:'2025-02-15',comments:[{id:'c1',userId:'m1',text:'Great progress! The wireframes look solid.',createdAt:'2 days ago'},{id:'c2',userId:'m3',text:'Thanks! Moving to hi-fidelity next.',createdAt:'1 day ago'}]},
+        {id:'t2', num:2, projectId:'p1',title:'Design component library',         description:'Build a comprehensive UI component library in Figma',                       status:'in-progress', priority:'high',   assigneeId:'m3',startDate:'2025-03-15',dueDate:'2025-04-01',comments:[]},
+        {id:'t3', num:3, projectId:'p1',title:'Implement new navigation',         description:'Code the redesigned responsive navigation with mobile menu',                status:'in-progress', priority:'medium', assigneeId:'m2',startDate:'2025-03-25',dueDate:'2025-04-15',comments:[{id:'c3',userId:'m2',text:'Working on mobile breakpoints now.',createdAt:'3 hours ago'}]},
+        {id:'t4', num:4, projectId:'p1',title:'Hero section animations',          description:'Add smooth entrance animations to the hero section elements',               status:'todo',        priority:'low',    assigneeId:'m2',startDate:'2025-04-10',dueDate:'2025-04-25',comments:[]},
+        {id:'t5', num:5, projectId:'p1',title:'SEO optimization audit',           description:'Audit current SEO and implement improvements for the new site',             status:'todo',        priority:'medium', assigneeId:'m1',startDate:'2025-04-15',dueDate:'2025-05-01',comments:[]},
+        {id:'t6', num:6, projectId:'p1',title:'Cross-browser testing',            description:'Test the new design across all major browsers and devices',                 status:'review',      priority:'high',   assigneeId:'m5',startDate:'2025-03-28',dueDate:'2025-04-10',comments:[{id:'c4',userId:'m5',text:'Found some issues in Safari — filing bugs now.',createdAt:'1 hour ago'}]},
+        {id:'t7', num:7, projectId:'p2',title:'App architecture planning',        description:'Define the technical architecture, state management, and tech stack',       status:'done',        priority:'high',   assigneeId:'m4',startDate:'2025-01-20',dueDate:'2025-02-01',comments:[]},
+        {id:'t8', num:8, projectId:'p2',title:'User authentication flow',         description:'Implement login, registration, OAuth and password reset screens',           status:'in-progress', priority:'high',   assigneeId:'m4',startDate:'2025-04-01',dueDate:'2025-04-20',comments:[]},
+        {id:'t9', num:9, projectId:'p2',title:'Push notification system',         description:'Set up Firebase Cloud Messaging for push notifications',                    status:'todo',        priority:'medium', assigneeId:'m4',startDate:'2025-04-20',dueDate:'2025-05-10',comments:[]},
+        {id:'t10',num:10,projectId:'p2',title:'App store submission prep',        description:'Prepare screenshots, descriptions and metadata for App Store & Play Store', status:'todo',        priority:'medium', assigneeId:'m1',startDate:'2025-06-15',dueDate:'2025-07-01',comments:[]},
+        {id:'t11',num:11,projectId:'p2',title:'Beta testing round',               description:'Recruit beta testers and coordinate the first testing round',               status:'todo',        priority:'high',   assigneeId:'m5',startDate:'2025-06-01',dueDate:'2025-06-15',comments:[]},
+        {id:'t12',num:12,projectId:'p3',title:'Stripe payment integration',       description:'Integrate Stripe SDK for one-time and subscription payment processing',     status:'done',        priority:'high',   assigneeId:'m4',startDate:'2025-03-14',dueDate:'2025-03-28',comments:[]},
+        {id:'t13',num:13,projectId:'p3',title:'SendGrid email integration',       description:'Set up transactional email service using SendGrid templates',               status:'in-progress', priority:'medium', assigneeId:'m2',startDate:'2025-04-01',dueDate:'2025-04-15',comments:[]},
+        {id:'t14',num:14,projectId:'p3',title:'OAuth2 social login',              description:'Add Google and GitHub OAuth2 login options to the auth flow',               status:'review',      priority:'medium', assigneeId:'m4',startDate:'2025-04-10',dueDate:'2025-04-25',comments:[]},
     ],
     activities:[
         {id:'a1',text:'Alice Johnson moved "Cross-browser testing" to In Review', time:'1 hour ago'},
@@ -300,6 +334,9 @@ let S = (() => {
         if (d.editMemberId === undefined) d.editMemberId = null;
         // Ensure members have department field
         d.members.forEach(m => { if (!m.department) m.department = 'IT'; });
+        // Ensure tasks have num field
+        if (!d.taskCounter) d.taskCounter = (d.tasks?.length || 0) + 1;
+        d.tasks?.forEach((t, i) => { if (!t.num) t.num = i + 1; if (!t.auditLog) t.auditLog = []; });
         return d;
     } catch { return JSON.parse(JSON.stringify(SEED)); }
 })();
@@ -309,6 +346,7 @@ function save(){ try { localStorage.setItem('tf_state', JSON.stringify(S)); } ca
 //  HELPERS
 // ─────────────────────────────────────────────
 const uid     = p => p + Date.now() + Math.random().toString(36).slice(2,6);
+const fmtNum  = n => '#' + String(n||0).padStart(3,'0');
 const gMem    = id => S.members.find(m=>m.id===id);
 const gPrj    = id => S.projects.find(p=>p.id===id);
 const gTsk    = id => S.tasks.find(t=>t.id===id);
@@ -345,6 +383,12 @@ function deptBadge(dept){
 }
 
 function actPush(text){ S.activities.unshift({id:uid('a'),text,time:'Just now'}); if(S.activities.length>30) S.activities.pop(); }
+function auditPush(task,action,detail){
+    if(!task.auditLog) task.auditLog=[];
+    const ts=new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    task.auditLog.unshift({id:uid('al'),userId:S.currentUser,action,detail,ts});
+}
+const auditIcon = a => ({created:'✨',status:'🔄',assigned:'👤',comment:'💬',priority:'🎯',due:'📅'}[a]||'📝');
 
 // ─────────────────────────────────────────────
 //  RENDER ENGINE
@@ -382,6 +426,7 @@ function sidebar(me){
             ${ni('projects','Projects',`<path d="M3 3h7v4H3z"/><path d="M14 3h7v4h-7z"/><path d="M3 11h18v9H3z"/>`,S.projects.filter(p=>p.status==='active').length)}
             ${ni('mytasks','My Tasks',`<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>`,myN)}
             ${ni('team','Team & Depts',`<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>`,0)}
+            ${ni('reports','Reports',`<path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/>`,0)}
             <div class="sec-label" style="margin-top:10px">Projects</div>
             ${ap.map(p=>`
                 <div class="nav-item ${S.view==='kanban'&&S.projectId===p.id?'active':''}" data-nav="kanban" data-pid="${p.id}">
@@ -416,12 +461,13 @@ function ni(v,label,path,count){
 //  TOPBAR
 // ─────────────────────────────────────────────
 function topbar(){
-    const titles = {dashboard:'Dashboard',projects:'Projects',mytasks:'My Tasks',team:'Team & Departments',kanban:gPrj(S.projectId)?.name||'Project'};
+    const titles = {dashboard:'Dashboard',projects:'Projects',mytasks:'My Tasks',team:'Team & Departments',kanban:gPrj(S.projectId)?.name||'Project',reports:'Reports'};
     let actions = '';
     if(S.view==='kanban') actions = `
         <div class="view-toggle">
             <button class="vt-btn ${S.taskView==='kanban'?'active':''}" data-tv="kanban" title="Board"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="18"/><rect x="10" y="3" width="5" height="18"/><rect x="17" y="3" width="5" height="18"/></svg></button>
             <button class="vt-btn ${S.taskView==='list'?'active':''}"   data-tv="list"   title="List"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1" fill="currentColor"/><circle cx="3" cy="12" r="1" fill="currentColor"/><circle cx="3" cy="18" r="1" fill="currentColor"/></svg></button>
+            <button class="vt-btn ${S.taskView==='gantt'?'active':''}"  data-tv="gantt"  title="Gantt"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="13" y2="6"/><line x1="3" y1="10" x2="18" y2="10"/><line x1="3" y1="14" x2="10" y2="14"/><line x1="3" y1="18" x2="15" y2="18"/></svg></button>
         </div>
         <button class="btn btn-primary btn-sm" data-action="add-task">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Task
@@ -441,9 +487,10 @@ function view(){
     switch(S.view){
         case 'dashboard': return vDashboard();
         case 'projects':  return vProjects();
-        case 'kanban':    return S.taskView==='list' ? vList() : vKanban();
+        case 'kanban':    return S.taskView==='list' ? vList() : S.taskView==='gantt' ? vGantt() : vKanban();
         case 'mytasks':   return vMyTasks();
         case 'team':      return vTeam();
+        case 'reports':   return vReports();
         default:          return vDashboard();
     }
 }
@@ -487,6 +534,7 @@ function vDashboard(){
                 ${myopen.slice(0,6).map(t=>{
                     const prj=gPrj(t.projectId);
                     return `<div style="padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;cursor:pointer" data-open-task="${t.id}">
+                        <span style="font-size:10px;font-weight:700;color:var(--accent);min-width:36px">${fmtNum(t.num)}</span>
                         <div style="width:7px;height:7px;border-radius:50%;background:${prj?.color};flex-shrink:0"></div>
                         <div style="flex:1"><div style="font-size:13px;font-weight:500">${t.title}</div><div style="font-size:11px;color:var(--muted-text)">${prj?.name}</div></div>
                         <span class="badge badge-${t.priority}">${t.priority}</span>
@@ -587,6 +635,7 @@ function tCard(t){
     const p=m?deptPal(m.department):null;
     return `<div class="task-card" draggable="true" data-task-id="${t.id}" data-open-task="${t.id}"
         ondragstart="dStart(event,'${t.id}')">
+        <div class="task-num">${fmtNum(t.num)}</div>
         <div class="task-title">${t.title}</div>
         ${t.description?`<div class="task-desc-preview">${t.description}</div>`:''}
         <div class="task-meta">
@@ -618,6 +667,7 @@ function vList(){
                     :ts.map(t=>{
                         const m=gMem(t.assigneeId); const p=m?deptPal(m.department):null;
                         return `<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;cursor:pointer" data-open-task="${t.id}">
+                            <span style="font-size:10px;font-weight:700;color:var(--accent);min-width:36px">${fmtNum(t.num)}</span>
                             <div style="width:7px;height:7px;border-radius:50%;background:${col.color};flex-shrink:0"></div>
                             <div style="flex:1"><div style="font-size:13px;font-weight:500">${t.title}</div>${t.description?`<div style="font-size:11px;color:var(--muted-text)">${t.description.slice(0,80)}…</div>`:''}</div>
                             <span class="badge badge-${t.priority}">${t.priority}</span>
@@ -629,6 +679,75 @@ function vList(){
                 </div>
             </div>`;
         }).join('')}
+    </div>`;
+}
+
+// ── GANTT ──
+function vGantt(){
+    if(!S.projectId) return `<div class="empty"><div class="empty-icon">📊</div><div class="empty-title">No project selected</div><div class="empty-desc">Pick a project from the sidebar</div></div>`;
+    const tasks = prjTasks(S.projectId).filter(t=>t.startDate||t.dueDate);
+    if(!tasks.length) return `<div class="empty"><div class="empty-icon">📅</div><div class="empty-title">No dates set</div><div class="empty-desc">Add start and due dates to tasks to see the Gantt chart</div></div>`;
+
+    // Compute date range
+    const allDates = tasks.flatMap(t=>[t.startDate,t.dueDate].filter(Boolean)).map(d=>new Date(d));
+    let minD = new Date(Math.min(...allDates)); minD.setDate(minD.getDate()-3);
+    let maxD = new Date(Math.max(...allDates)); maxD.setDate(maxD.getDate()+3);
+    const totalMs = maxD - minD;
+    const totalDays = totalMs / 86400000;
+    const today = new Date();
+
+    // Week markers across the range
+    const weeks = [];
+    let wk = new Date(minD);
+    wk.setDate(wk.getDate() - wk.getDay()); // align to Sunday
+    while(wk <= maxD){ weeks.push(new Date(wk)); wk.setDate(wk.getDate()+7); }
+
+    const pct = d => Math.max(0, Math.min(100, (new Date(d)-minD)/totalMs*100));
+    const statusColor = s => ({todo:'#94A3B8','in-progress':'#3B82F6',review:'#8B5CF6',done:'#10B981'}[s]||'#94A3B8');
+
+    const todayPct = (today-minD)/totalMs*100;
+
+    const weekHeaders = weeks.map(w=>`<div class="gantt-week-mark" style="left:${pct(w)}%">${w.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>`).join('');
+
+    const rows = tasks.map(t=>{
+        const sd = t.startDate || t.dueDate;
+        const ed = t.dueDate   || t.startDate;
+        const left  = pct(sd);
+        const width = Math.max(0.8, pct(ed) - left);
+        const days  = t.startDate&&t.dueDate ? Math.ceil((new Date(t.dueDate)-new Date(t.startDate))/86400000) : null;
+        const m = gMem(t.assigneeId);
+        return `<div class="gantt-row">
+            <div class="gantt-task-info">
+                <span style="font-size:10px;font-weight:700;color:var(--accent);min-width:30px">${fmtNum(t.num)}</span>
+                <span style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;cursor:pointer" data-open-task="${t.id}" title="${t.title}">${t.title}</span>
+            </div>
+            <div class="gantt-bar-area">
+                ${todayPct>=0&&todayPct<=100?`<div class="gantt-today" style="left:${todayPct}%"></div>`:''}
+                <div class="gantt-bar" style="left:${left}%;width:${width}%;background:${statusColor(t.status)}"
+                    data-open-task="${t.id}" title="${t.title} · ${days?days+' days':''}">
+                    ${width>8?`${fmtNum(t.num)} ${days?days+'d':''}`:'' }
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+
+    return `<div>
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;flex-wrap:wrap">
+            ${[{id:'todo',label:'To Do',color:'#94A3B8'},{id:'in-progress',label:'In Progress',color:'#3B82F6'},{id:'review',label:'In Review',color:'#8B5CF6'},{id:'done',label:'Done',color:'#10B981'}].map(c=>`
+                <div style="display:flex;align-items:center;gap:5px;font-size:12px">
+                    <div style="width:10px;height:10px;border-radius:2px;background:${c.color}"></div>${c.label}
+                </div>`).join('')}
+            <div style="font-size:12px;display:flex;align-items:center;gap:5px"><div style="width:2px;height:14px;background:var(--danger);opacity:.7"></div>Today</div>
+        </div>
+        <div class="gantt-wrap">
+            <div class="gantt-container">
+                <div class="gantt-head">
+                    <div class="gantt-lbl-col">Task</div>
+                    <div class="gantt-tl-head" style="position:relative;height:20px">${weekHeaders}</div>
+                </div>
+                ${rows}
+            </div>
+        </div>
     </div>`;
 }
 
@@ -645,6 +764,7 @@ function vMyTasks(){
             </div>
             <div class="card" style="padding:0;overflow:hidden">
                 ${ts.map(t=>{const p=gPrj(t.projectId);return `<div style="padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;cursor:pointer" data-open-task="${t.id}">
+                    <span style="font-size:10px;font-weight:700;color:var(--accent);min-width:36px">${fmtNum(t.num)}</span>
                     <div style="width:7px;height:7px;border-radius:50%;background:${p?.color};flex-shrink:0"></div>
                     <div style="flex:1"><div style="font-size:13px;font-weight:500;${t.status==='done'?'text-decoration:line-through;color:var(--muted-text)':''}">${t.title}</div><div style="font-size:11px;color:var(--muted-text)">${p?.name}</div></div>
                     <span class="badge badge-${t.priority}">${t.priority}</span>
@@ -737,6 +857,126 @@ function vTeam(){
     `;
 }
 
+// ── REPORTS ──
+function vReports(){
+    const allTasks = S.tasks;
+    const done     = allTasks.filter(t=>t.status==='done');
+    const inprog   = allTasks.filter(t=>t.status==='in-progress');
+    const overdueTasks = allTasks.filter(t=>t.status!=='done'&&overdue(t.dueDate));
+
+    // Duration: tasks that have both startDate and dueDate
+    const withDuration = allTasks.filter(t=>t.startDate&&t.dueDate);
+    const avgDuration  = withDuration.length
+        ? Math.round(withDuration.reduce((s,t)=>s+Math.max(1,Math.ceil((new Date(t.dueDate)-new Date(t.startDate))/86400000)),0)/withDuration.length)
+        : null;
+
+    // On-time: done tasks where dueDate >= completedAt (we don't track completedAt, so check if dueDate is not in past by much — proxy: done before overdue)
+    const onTime = done.filter(t=>t.dueDate && new Date(t.dueDate) >= new Date(t.dueDate)).length; // all done tasks count as on-time for now
+
+    // Per-project stats
+    const projRows = S.projects.map(p=>{
+        const pts = prjTasks(p.id);
+        const pDone = pts.filter(t=>t.status==='done').length;
+        const pct = pts.length ? Math.round(pDone/pts.length*100) : 0;
+        const withD = pts.filter(t=>t.startDate&&t.dueDate);
+        const avgD = withD.length ? Math.round(withD.reduce((s,t)=>s+Math.max(1,Math.ceil((new Date(t.dueDate)-new Date(t.startDate))/86400000)),0)/withD.length) : null;
+        return {p,pts,pDone,pct,avgD};
+    });
+
+    // Per-member workload
+    const memberRows = S.members.map(m=>{
+        const mt = allTasks.filter(t=>t.assigneeId===m.id);
+        const mDone = mt.filter(t=>t.status==='done').length;
+        const mActive = mt.filter(t=>t.status!=='done').length;
+        return {m,total:mt.length,done:mDone,active:mActive};
+    }).filter(r=>r.total>0).sort((a,b)=>b.total-a.total);
+    const maxMemberTasks = Math.max(1,...memberRows.map(r=>r.total));
+
+    // Status distribution
+    const statusCounts = COLUMNS.map(c=>({...c, count:allTasks.filter(t=>t.status===c.id).length}));
+    const maxCount = Math.max(1,...statusCounts.map(s=>s.count));
+
+    return `
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Total Tasks</div><div class="stat-value">${allTasks.length}</div><div class="stat-sub">${done.length} completed</div></div>
+        <div class="stat-card"><div class="stat-label">Avg Task Duration</div><div class="stat-value">${avgDuration??'—'}${avgDuration?'<span style="font-size:16px;font-weight:400"> days</span>':''}</div><div class="stat-sub">${withDuration.length} tasks with dates</div></div>
+        <div class="stat-card"><div class="stat-label">In Progress</div><div class="stat-value">${inprog.length}</div><div class="stat-sub">${Math.round(inprog.length/Math.max(1,allTasks.length)*100)}% of all tasks</div></div>
+        <div class="stat-card"><div class="stat-label">Overdue</div><div class="stat-value" style="${overdueTasks.length?'color:var(--danger)':''}">${overdueTasks.length}</div><div class="stat-sub ${overdueTasks.length?'red':''}">${overdueTasks.length?'Need attention':'All on track'}</div></div>
+    </div>
+
+    <div class="report-row">
+        <div class="report-card">
+            <div class="report-title">📁 Project Completion</div>
+            ${projRows.map(({p,pts,pDone,pct,avgD})=>`
+            <div class="rbar-row">
+                <div class="rbar-lbl" title="${p.name}">${p.name}</div>
+                <div class="rbar-track"><div class="rbar-fill" style="width:${pct}%;background:${p.color}"></div></div>
+                <div class="rbar-val">${pct}%</div>
+                ${avgD?`<div style="font-size:11px;color:var(--muted-text);margin-left:6px;white-space:nowrap">${avgD}d avg</div>`:''}
+            </div>`).join('')}
+        </div>
+        <div class="report-card">
+            <div class="report-title">👤 Team Workload</div>
+            ${memberRows.map(({m,total,done:d,active})=>`
+            <div class="rbar-row">
+                <div style="display:flex;align-items:center;gap:6px;min-width:120px;flex-shrink:0">
+                    ${avHtml(m,'av-sm')}
+                    <span class="rbar-lbl" style="min-width:0" title="${m.name}">${m.name.split(' ')[0]}</span>
+                </div>
+                <div class="rbar-track">
+                    <div style="height:100%;display:flex;border-radius:99px;overflow:hidden">
+                        <div style="width:${Math.round(d/maxMemberTasks*100)}%;background:var(--success)"></div>
+                        <div style="width:${Math.round(active/maxMemberTasks*100)}%;background:var(--accent)"></div>
+                    </div>
+                </div>
+                <div class="rbar-val">${total}</div>
+            </div>`).join('')}
+            <div style="display:flex;gap:16px;margin-top:10px;font-size:11px;color:var(--muted-text)">
+                <div style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:2px;background:var(--success)"></div>Done</div>
+                <div style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:2px;background:var(--accent)"></div>Active</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="report-row">
+        <div class="report-card">
+            <div class="report-title">📊 Task Status Breakdown</div>
+            ${statusCounts.map(s=>`
+            <div class="rbar-row">
+                <div style="display:flex;align-items:center;gap:6px;min-width:120px;flex-shrink:0">
+                    <div style="width:8px;height:8px;border-radius:50%;background:${s.color}"></div>
+                    <span class="rbar-lbl" style="min-width:0">${s.label}</span>
+                </div>
+                <div class="rbar-track"><div class="rbar-fill" style="width:${Math.round(s.count/maxCount*100)}%;background:${s.color}"></div></div>
+                <div class="rbar-val">${s.count}</div>
+            </div>`).join('')}
+        </div>
+        <div class="report-card">
+            <div class="report-title">⏱ Duration by Project</div>
+            ${projRows.filter(r=>r.avgD).length ? projRows.filter(r=>r.avgD).map(({p,avgD})=>{
+                const maxAvg = Math.max(...projRows.filter(r=>r.avgD).map(r=>r.avgD));
+                return `<div class="rbar-row">
+                    <div class="rbar-lbl" title="${p.name}">${p.name}</div>
+                    <div class="rbar-track"><div class="rbar-fill" style="width:${Math.round(avgD/maxAvg*100)}%;background:${p.color}"></div></div>
+                    <div class="rbar-val">${avgD}d</div>
+                </div>`;
+            }).join('') : '<div style="font-size:13px;color:var(--muted-text)">Add start dates to tasks to see duration data.</div>'}
+            ${overdueTasks.length?`
+            <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+                <div style="font-size:12px;font-weight:700;color:var(--danger);margin-bottom:8px">⚠️ Overdue Tasks (${overdueTasks.length})</div>
+                ${overdueTasks.slice(0,5).map(t=>{
+                    const days=Math.ceil((new Date()-new Date(t.dueDate))/86400000);
+                    return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px">
+                        <span style="font-weight:700;color:var(--accent)">${fmtNum(t.num)}</span>
+                        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.title}</span>
+                        <span style="color:var(--danger);font-weight:600;white-space:nowrap">${days}d overdue</span>
+                    </div>`;
+                }).join('')}
+            </div>`:''}
+        </div>
+    </div>`;
+}
+
 // ─────────────────────────────────────────────
 //  MODALS
 // ─────────────────────────────────────────────
@@ -820,13 +1060,16 @@ function mAddTask(){
             <div class="modal-body">
                 <div class="fg"><label class="fl">Task Title *</label><input class="fi" id="tt" placeholder="What needs to be done?" autofocus></div>
                 <div class="fg"><label class="fl">Description</label><textarea class="ft" id="td" placeholder="Add more details…"></textarea></div>
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                     <div class="fg"><label class="fl">Status</label><select class="fs" id="ts">
                         ${COLUMNS.map(c=>`<option value="${c.id}"${c.id===def?' selected':''}>${c.label}</option>`).join('')}
                     </select></div>
                     <div class="fg"><label class="fl">Priority</label><select class="fs" id="tp">
                         <option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option>
                     </select></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                    <div class="fg"><label class="fl">Start Date</label><input type="date" class="fi" id="tsd"></div>
                     <div class="fg"><label class="fl">Due Date</label><input type="date" class="fi" id="tdd"></div>
                 </div>
                 <div class="fg">
@@ -858,6 +1101,7 @@ function mTaskDetail(){
             <div class="modal-hdr">
                 <div style="flex:1">
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                        <span style="font-size:12px;font-weight:700;color:var(--accent)">${fmtNum(t.num)}</span>
                         <div style="width:7px;height:7px;border-radius:50%;background:${prj?.color}"></div>
                         <div style="font-size:12px;color:var(--muted-text)">${prj?.name}</div>
                         <span class="badge badge-${t.status}">${t.status.replace('-',' ')}</span>
@@ -885,6 +1129,21 @@ function mTaskDetail(){
                                 <button class="btn btn-accent btn-sm" onclick="doComment('${t.id}')">Post</button>
                             </div>
                         </div>
+                        <!-- AUDIT TRAIL -->
+                        <div style="margin-top:18px">
+                            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted-text);margin-bottom:10px">Audit Trail (${t.auditLog?.length||0})</div>
+                            ${t.auditLog?.length?t.auditLog.slice(0,15).map(a=>{
+                                const u=gMem(a.userId);
+                                return `<div class="audit-entry">
+                                    <div class="audit-icon-box">${auditIcon(a.action)}</div>
+                                    <div class="audit-body">
+                                        <div class="audit-action-text">${u?.name||'System'} — ${a.action}</div>
+                                        <div class="audit-detail-text">${a.detail}</div>
+                                    </div>
+                                    <div class="audit-when">${a.ts}</div>
+                                </div>`;
+                            }).join(''):'<div style="font-size:12px;color:var(--muted-text)">No activity recorded yet.</div>'}
+                        </div>
                     </div>
                     <div>
                         <div style="background:var(--muted-bg);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:14px">
@@ -906,7 +1165,9 @@ function mTaskDetail(){
                             </div>
 
                             <div><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted-text);margin-bottom:5px">Priority</div><span class="badge badge-${t.priority}">${t.priority}</span></div>
+                            <div><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted-text);margin-bottom:5px">Start Date</div><div style="font-size:13px">${t.startDate?fmtDate(t.startDate):'Not set'}</div></div>
                             <div><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted-text);margin-bottom:5px">Due Date</div><div style="font-size:13px;color:${overdue(t.dueDate)&&t.status!=='done'?'var(--danger)':'var(--text)'}">${t.dueDate?fmtDate(t.dueDate):'Not set'}</div></div>
+                            ${t.startDate&&t.dueDate?`<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted-text);margin-bottom:5px">Duration</div><div style="font-size:13px;font-weight:600">${Math.max(1,Math.ceil((new Date(t.dueDate)-new Date(t.startDate))/86400000))} days</div></div>`:''}
                             <div><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted-text);margin-bottom:5px">Project</div>
                                 <div style="display:flex;align-items:center;gap:5px"><div style="width:6px;height:6px;border-radius:50%;background:${prj?.color}"></div><div style="font-size:12px">${prj?.name}</div></div>
                             </div>
@@ -1065,7 +1326,10 @@ function doCreateTask(){
     const title=(document.getElementById('tt')?.value||'').trim();
     if(!title){alert('Please enter a task title');return;}
     const assigneeId=document.getElementById('ta')?.value||'';
-    const t={id:uid('t'),projectId:S.projectId,title,description:document.getElementById('td')?.value||'',status:document.getElementById('ts')?.value||'todo',priority:document.getElementById('tp')?.value||'medium',assigneeId,dueDate:document.getElementById('tdd')?.value||'',comments:[]};
+    const num=S.taskCounter++;
+    const t={id:uid('t'),num,projectId:S.projectId,title,description:document.getElementById('td')?.value||'',status:document.getElementById('ts')?.value||'todo',priority:document.getElementById('tp')?.value||'medium',assigneeId,startDate:document.getElementById('tsd')?.value||'',dueDate:document.getElementById('tdd')?.value||'',comments:[],auditLog:[]};
+    auditPush(t,'created','Task created');
+    if(assigneeId) auditPush(t,'assigned','Assigned to '+(gMem(assigneeId)?.name||'someone'));
     S.tasks.push(t);
     const assignee=gMem(assigneeId);
     actPush(`${gMem(S.currentUser)?.name} created task "${title}"${assignee?' → assigned to '+assignee.name:''}`);
@@ -1078,6 +1342,7 @@ function doReassign(taskId, newId){
     const oldMem=gMem(t.assigneeId);
     const newMem=gMem(newId);
     t.assigneeId=newId;
+    auditPush(t,'assigned',(oldMem?oldMem.name:'Unassigned')+' → '+(newMem?newMem.name:'Unassigned'));
     actPush(`${gMem(S.currentUser)?.name} reassigned "${t.title}" ${oldMem?'from '+oldMem.name:''} to ${newMem?newMem.name:'Unassigned'}`);
     save(); render();
 }
@@ -1088,14 +1353,17 @@ function doComment(taskId){
     const t=gTsk(taskId); if(!t) return;
     if(!t.comments) t.comments=[];
     t.comments.push({id:uid('c'),userId:S.currentUser,text,createdAt:'Just now'});
+    auditPush(t,'comment','Added a comment');
     actPush(`${gMem(S.currentUser)?.name} commented on "${t.title}"`);
     save(); render();
 }
 
 function doStatus(taskId,newStatus){
     const t=gTsk(taskId); if(!t) return;
+    const oldCol=COLUMNS.find(c=>c.id===t.status);
     t.status=newStatus;
     const col=COLUMNS.find(c=>c.id===newStatus);
+    auditPush(t,'status',(oldCol?.label||t.status)+' → '+(col?.label||newStatus));
     actPush(`${gMem(S.currentUser)?.name} moved "${t.title}" to ${col?.label}`);
     save(); render();
 }
@@ -1166,8 +1434,10 @@ function dDrop(e,col){
     if(!dragId) return;
     const t=gTsk(dragId);
     if(t&&t.status!==col){
+        const oldC=COLUMNS.find(x=>x.id===t.status);
         t.status=col;
         const c=COLUMNS.find(x=>x.id===col);
+        auditPush(t,'status',(oldC?.label||'Unknown')+' → '+(c?.label||col));
         actPush(`${gMem(S.currentUser)?.name} moved "${t.title}" to ${c?.label}`);
         save(); render();
     }
@@ -1223,4 +1493,3 @@ render();
 </script>
 </body>
 </html>
-
